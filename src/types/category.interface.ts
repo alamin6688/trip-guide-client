@@ -6,6 +6,6 @@ export interface ICategory {
   title: string;
   icon: string;
 
-    guideCategories?: IGuideCategory[];
+  guideCategories?: IGuideCategory[];
   listings?: IListing[];
 }

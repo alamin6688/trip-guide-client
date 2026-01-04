@@ -1,7 +1,7 @@
 
 
 const AdminDashboardPage = () => {
-  return <div>AdminDashboardPage</div>;
+  return <div>Admin Dashboard Page</div>;
 };
 
 export default AdminDashboardPage;
