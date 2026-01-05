@@ -50,6 +50,7 @@ export async function createGuide(_prevState: any, formData: FormData) {
       experience: Number(formData.get("experience") || 0),
       guideCategories: guideCategories.map((gc) => ({
         id: gc.id,
+        // title: gc.title,
       })),
       profilePhoto: formData.get("file") as File | undefined,
       averageRating: 0,
@@ -337,3 +338,60 @@ export async function deleteGuide(id: string) {
 //     };
 //   }
 // }
+
+export async function createCategory(_prev: any, formData: FormData) {
+  try {
+    const payload = {
+      title: String(formData.get("title") || "")
+        .trim()
+        .toUpperCase(),
+      icon: String(formData.get("icon") || ""),
+    };
+
+    const response = await serverFetch.post("/category", {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    return await response.json();
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to create category",
+      formData: Object.fromEntries(formData),
+    };
+  }
+}
+
+// export async function getCategories() {
+//   try {
+//     const response = await serverFetch.get("/category", {
+//       cache: "force-cache",
+//       next: { tags: ["categories-list"] },
+//     });
+//     const result = await response.json();
+//     return result;
+//   } catch (error: any) {
+//     console.log(error);
+//     return {
+//       success: false,
+//       message: `${
+//         process.env.NODE_ENV === "development"
+//           ? error.message
+//           : "Something went wrong"
+//       }`,
+//     };
+//   }
+// }
+
+export async function deleteCategory(id: string) {
+  try {
+    const response = await serverFetch.delete(`/category/${id}`);
+    return await response.json();
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to delete category",
+    };
+  }
+}

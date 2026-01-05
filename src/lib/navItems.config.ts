@@ -140,12 +140,12 @@ export const adminNavItems: NavSection[] = [
   {
     title: "Platform Management",
     items: [
-      {
-        title: "Bookings",
-        href: "/admin/dashboard/bookings-management",
-        icon: "CalendarDays",
-        roles: ["ADMIN"],
-      },
+      // {
+      //   title: "Bookings",
+      //   href: "/admin/dashboard/bookings-management",
+      //   icon: "CalendarDays",
+      //   roles: ["ADMIN"],
+      // },
       {
         title: "Payments",
         href: "/admin/dashboard/payments-management",

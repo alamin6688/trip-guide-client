@@ -7,8 +7,8 @@ import GuideFormDialog from "./GuideFormDialog";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ManagementTable from "@/components/shared/ManagementTable";
-import { guidesColumns } from "./GuideColumns";
 import { deleteGuide } from "@/services/admin/guidesManagement";
+import { guidesColumns } from "./GuideColumns";
 
 interface GuidesTableProps {
   guides: IGuide[];

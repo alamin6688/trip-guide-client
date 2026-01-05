@@ -22,7 +22,7 @@ const GuideFilters = ({ categories }: GuideFilterProps) => {
       {/* Row 2: Filter Controls - All on same line */}
       <div className="flex items-center gap-3 flex-wrap">
         {/* Categories Multi-Select */}
-        <MultiSelectFilter
+        {/* <MultiSelectFilter
           paramName="specialties"
           options={categories.map((category) => ({
             value: category.title,
@@ -32,7 +32,7 @@ const GuideFilters = ({ categories }: GuideFilterProps) => {
           searchPlaceholder="Search categories..."
           emptyMessage="No specialty found."
           showBadges={false}
-        />
+        /> */}
 
         {/* Gender Filter */}
         <SelectFilter

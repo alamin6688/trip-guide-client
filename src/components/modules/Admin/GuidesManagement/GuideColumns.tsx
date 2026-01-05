@@ -20,26 +20,30 @@ export const guidesColumns: Column<IGuide>[] = [
     ),
     sortKey: "name",
   },
-  {
-    header: "Categories",
-    accessor: (guide) => {
-      if (!guide.guideCategories || guide.guideCategories.length === 0) {
-        return <span className="text-xs text-gray-500">No categories</span>;
-      }
-      return (
-        <div className="flex flex-wrap gap-1">
-          {guide.guideCategories.map((cat: any, index: number) => (
-            <span
-              key={cat.categoryId || index}
-              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-            >
-              {cat.categories?.title || "N/A"}
-            </span>
-          ))}
-        </div>
-      );
-    },
-  },
+  // {
+  //   header: "Categories",
+  //   accessor: (guide) => {
+  //     if (!guide.guideCategories || guide.guideCategories.length === 0) {
+  //       console.log(guide.guideCategories);
+
+  //       return <span className="text-xs text-gray-500">No categories</span>;
+  //     }
+
+  //     return (
+  //       <div className="flex flex-wrap gap-1">
+  //         {guide.guideCategories.map((gc, index) => (
+  //           <span
+  //             key={gc.categoryId || index}
+  //             className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+  //           >
+  //             {gc.category?.icon && <span>{gc.category.icon}</span>}
+  //             {gc.category?.title || "N/A"}
+  //           </span>
+  //         ))}
+  //       </div>
+  //     );
+  //   },
+  // },
   {
     header: "Contact",
     accessor: (guide) => <span className="text-sm">{guide.contactNumber}</span>,

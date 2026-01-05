@@ -73,9 +73,6 @@ const GuideFormDialog = ({
     null
   );
 
-  // const [languages, setLanguages] = useState<string>(
-  //   guide?.languages?.join(", ") || ""
-  // );
 
   const handleClose = () => {
     if (fileInputRef.current) {
@@ -88,7 +85,7 @@ const GuideFormDialog = ({
     onClose(); // Close dialog
   };
 
-  console.log({ state });
+  // console.log({ state });
 
   const toggleCategory = (id: string) => {
     setSelectedCategories((prev) =>
@@ -174,7 +171,6 @@ const GuideFormDialog = ({
               name="email"
               type="email"
               placeholder="guide@example.com"
-              // defaultValue={isEdit ? doctor?.email : undefined}
               defaultValue={
                 state?.formData?.email || (isEdit ? guide?.email : "")
               }
@@ -221,9 +217,6 @@ const GuideFormDialog = ({
               name="gender"
               placeholder="Select gender"
               defaultValue={gender}
-              // defaultValue={
-              //   state?.formData?.gender || (isEdit ? doctor?.gender : "")
-              // }
               type="hidden"
             />
             <Select
@@ -263,7 +256,6 @@ const GuideFormDialog = ({
               id="contactNumber"
               name="contactNumber"
               placeholder="+1234567890"
-              // defaultValue={doctor?.contactNumber}
               defaultValue={
                 state?.formData?.contactNumber ||
                 (isEdit ? guide?.contactNumber : "")
@@ -301,7 +293,6 @@ const GuideFormDialog = ({
               name="dailyRate"
               type="number"
               placeholder="60"
-              // defaultValue={isEdit ? doctor?.dailyRate : undefined}
               defaultValue={
                 state?.formData?.dailyRate || (isEdit ? guide?.dailyRate : "")
               }
@@ -318,7 +309,6 @@ const GuideFormDialog = ({
               name="experience"
               type="number"
               placeholder="5"
-              // defaultValue={isEdit ? doctor?.experience : undefined}
               defaultValue={
                 state?.formData?.experience || (isEdit ? guide?.experience : "")
               }
@@ -350,7 +340,6 @@ const GuideFormDialog = ({
             onCurrentCategoryChange={categorySelection.setCurrentCategoryId}
             onAddCategory={categorySelection.handleAddCategory}
             onRemoveCategory={categorySelection.handleRemoveCategory}
-            // getCategoryTitle={getCategoryTitle}
             getNewCategories={categorySelection.getNewCategories}
           />
           <InputFieldError field="categories" state={state} />
