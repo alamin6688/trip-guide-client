@@ -205,19 +205,17 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="registrationNumber">
-                        Registration Number
-                      </Label>
+                      <Label htmlFor="city">City</Label>
                       <Input
-                        id="registrationNumber"
-                        name="registrationNumber"
-                        // defaultValue={userInfo.guide.registrationNumber || ""}
+                        id="city"
+                        name="city"
+                        defaultValue={userInfo.guide.city || ""}
                         required
                         disabled={isPending}
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="experience">Experience (Years)</Label>
                       <Input
                         id="experience"
@@ -226,54 +224,18 @@ const MyProfile = ({ userInfo }: MyProfileProps) => {
                         defaultValue={userInfo.guide.experience || ""}
                         disabled={isPending}
                       />
-                    </div>
+                    </div> */}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="appointmentFee">Appointment Fee</Label>
+                    {/* <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
                       <Input
-                        id="appointmentFee"
-                        name="appointmentFee"
-                        type="number"
-                        // defaultValue={userInfo.guide.appointmentFee || ""}
-                        required
+                        id="bio"
+                        name="bio"
+                        defaultValue={userInfo.guide.bio || ""}
+                        // required
                         disabled={isPending}
                       />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="qualification">Qualification</Label>
-                      <Input
-                        id="qualification"
-                        name="qualification"
-                        // defaultValue={userInfo.guide.qualification || ""}
-                        required
-                        disabled={isPending}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="currentWorkingPlace">
-                        Current Working Place
-                      </Label>
-                      <Input
-                        id="currentWorkingPlace"
-                        name="currentWorkingPlace"
-                        // defaultValue={userInfo.guide.currentWorkingPlace || ""}
-                        required
-                        disabled={isPending}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="designation">Designation</Label>
-                      <Input
-                        id="designation"
-                        name="designation"
-                        // defaultValue={userInfo.guide.designation || ""}
-                        required
-                        disabled={isPending}
-                      />
-                    </div>
+                    </div> */}
 
                     <div className="space-y-2">
                       <Label htmlFor="gender">Gender</Label>
