@@ -55,17 +55,17 @@ export const guideNavItems: NavSection[] = [
         roles: ["GUIDE"],
       },
       {
-        title: "My Schedules",
-        href: "/guide/dashboard/schedules",
-        icon: "Clock",
+        title: "My Listings",
+        href: "/guide/dashboard/listings",
+        icon: "List",
         roles: ["GUIDE"],
       },
-      {
-        title: "My Tours",
-        href: "/guide/dashboard/tours",
-        icon: "Map",
-        roles: ["GUIDE"],
-      },
+      // {
+      //   title: "My Tours",
+      //   href: "/guide/dashboard/tours",
+      //   icon: "Map",
+      //   roles: ["GUIDE"],
+      // },
     ],
   },
 ];
@@ -138,7 +138,7 @@ export const adminNavItems: NavSection[] = [
     ],
   },
   {
-    title: "Platform Management",
+    title: "Listings Management",
     items: [
       // {
       //   title: "Bookings",
@@ -147,11 +147,17 @@ export const adminNavItems: NavSection[] = [
       //   roles: ["ADMIN"],
       // },
       {
-        title: "Payments",
-        href: "/admin/dashboard/payments-management",
-        icon: "CreditCard",
+        title: "Listings",
+        href: "/admin/dashboard/listings-management",
+        icon: "CalendarDays",
         roles: ["ADMIN"],
       },
+      // {
+      //   title: "Payments",
+      //   href: "/admin/dashboard/payments-management",
+      //   icon: "CreditCard",
+      //   roles: ["ADMIN"],
+      // },
       {
         title: "Categories",
         href: "/admin/dashboard/categories-management",

@@ -395,3 +395,102 @@ export async function deleteCategory(id: string) {
     };
   }
 }
+
+export async function getListings(queryString?: string) {
+  try {
+    const response = await serverFetch.get(
+      `/listings${queryString ? `?${queryString}` : ""}`,
+      {
+        cache: "force-cache",
+        next: { tags: ["listings-list"] },
+      }
+    );
+    const result = await response.json();
+    console.log(result);
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+    };
+  }
+}
+
+export async function createListing(payload: any) {
+  try {
+    const response = await serverFetch.post("/listings", {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // Always parse JSON
+    const data = await response.json();
+    console.log(data);
+
+    // Ensure consistent return format
+    return {
+      success: data.success ?? false,
+      message: data.message ?? "",
+      listing: data.data ?? null,
+    };
+  } catch (error: any) {
+    console.error(error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+      listing: null,
+    };
+  }
+}
+
+export async function updateListing(id: string, payload: any) {
+  try {
+    const response = await serverFetch.patch(`/listings/${id}`, {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // Always parse JSON and ensure consistent return format
+    const data = await response.json();
+
+    return {
+      success: data.success ?? false,
+      message: data.message ?? "",
+      listing: data.data ?? null,
+    };
+  } catch (error: any) {
+    console.error(error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+      listing: null,
+    };
+  }
+}
+
+export async function deleteListing(id: string) {
+  try {
+    const response = await serverFetch.delete(`/listings/${id}`);
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+    };
+  }
+}
