@@ -494,3 +494,51 @@ export async function deleteListing(id: string) {
     };
   }
 }
+
+// utils/api.ts
+export async function getBookingsForGuide(queryString?: string) {
+  try {
+    const url = `/booking${queryString ? `?${queryString}` : ""}`;
+    const response = await serverFetch.get(url, {
+      cache: "no-store",
+      next: { tags: ["booking-list"] },
+    });
+
+    const result = await response.json();
+    console.log("Guide bookings:", result);
+    return result;
+  } catch (error: any) {
+    console.log("Error fetching guide bookings:", error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+    };
+  }
+}
+
+export async function updateBookingStatus(
+  id: string,
+  status: "ACCEPTED" | "REJECTED"
+) {
+  try {
+    const response = await serverFetch.patch(`/booking/${id}`, {
+      body: JSON.stringify({ status }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const result = await response.json();
+    return result;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      success: false,
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went wrong",
+    };
+  }
+}

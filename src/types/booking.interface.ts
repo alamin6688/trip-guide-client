@@ -4,11 +4,10 @@ import { IPayment } from "./payment.interface";
 import { IReview } from "./review.interface";
 import { ITourist } from "./tourist.interface";
 
-
 export enum BookingStatus {
   PENDING = "PENDING",
   ACCEPTED = "ACCEPTED",
-  REJECTED = "   REJECTED",
+  REJECTED = "REJECTED",
   COMPLETED = "COMPLETED",
   CANCELED = "CANCELED",
 }
@@ -44,6 +43,3 @@ export interface IBooking {
   payment?: IPayment;
   review?: IReview;
 }
-
-
-

@@ -59,14 +59,14 @@ DashboardSidebarContentProps) => {
                     >
                       <Icon className="h-4 w-4" />
                       <span className="flex-1">{item.title}</span>
-                      {item.badge && (
+                      {/* {item.badge && (
                         <Badge
                           variant={isActive ? "secondary" : "default"}
                           className="ml-auto"
                         >
                           {item.badge}
                         </Badge>
-                      )}
+                      )} */}
                     </Link>
                   );
                 })}

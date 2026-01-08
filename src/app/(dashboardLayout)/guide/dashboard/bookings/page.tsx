@@ -1,11 +1,10 @@
+import Bookings from "@/components/modules/Guide/GuideBookingsData/Bookings";
+import { getBookingsForGuide } from "@/services/admin/guidesManagement";
 
-
-const Bookings = () => {
-    return (
-        <div>
-            <h3>Bookings Page</h3>
-        </div>
-    );
+const BookingsPage = async () => {
+  const bookingResult = await getBookingsForGuide();
+  const bookingsData = bookingResult.success ? bookingResult.data : [];
+  return <Bookings bookingsData={bookingsData} />;
 };
 
-export default Bookings;
+export default BookingsPage;
