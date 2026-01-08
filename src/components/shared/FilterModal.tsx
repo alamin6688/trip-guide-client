@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+export interface FilterValues {
+  minPrice?: number;
+  maxPrice?: number;
+  rating?: number;
+  duration?: string[];
+  languages?: string[];
+}
+
 interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onApply: (filters: FilterValues) => void;
 }
-export function FilterModal({ isOpen, onClose }: FilterModalProps) {
+export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string[]>([]);
