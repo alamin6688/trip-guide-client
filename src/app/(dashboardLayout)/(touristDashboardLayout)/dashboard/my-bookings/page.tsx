@@ -156,15 +156,30 @@ const MyBookings = () => {
               </p>
             </div>
 
-            {/* 🔥 PAYMENT BUTTON */}
-            <div className="mt-4">
+            {/* 🔥 PAYMENT & REVIEW BUTTONS */}
+            <div className="mt-4 flex gap-2">
               {booking.paymentStatus === "PAID" ? (
-                <button
-                  disabled
-                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed"
-                >
-                  Payment Completed
-                </button>
+                <>
+                <div className="flex items-center justify-between w-full">
+
+                  <button
+                    disabled
+                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed"
+                    >
+                    Payment Completed
+                  </button>
+                  <button
+                    onClick={() =>
+                        router.push(
+                            `/dashboard/review?bookingId=${booking.id}&guideName=${booking.guide.name}&listingTitle=${booking.listing.title}`
+                        )
+                    }
+                    className="px-4 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-600"
+                    >
+                    Leave Review
+                  </button>
+                      </div>
+                </>
               ) : booking.status === "ACCEPTED" ? (
                 <button
                   onClick={async () => {

@@ -102,7 +102,7 @@ export const touristNavItems: NavSection[] = [
       // },
       {
         title: "Reviews",
-        href: "/dashboard/reviews",
+        href: "/dashboard/review",
         icon: "Star",
         roles: ["TOURIST"],
       },

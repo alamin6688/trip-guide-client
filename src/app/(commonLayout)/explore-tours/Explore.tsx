@@ -283,6 +283,10 @@ export default function Explore({
                     </span>
                     <span className="text-gray-400 text-sm">/person</span>
                   </div>
+                  {/* <div>
+                    <span className="text-yellow-400 font-medium"></span>
+                    {"★".repeat(Math.floor(exp.rating))}
+                  </div> */}
                 </div>
                 <button
                   onClick={() => {

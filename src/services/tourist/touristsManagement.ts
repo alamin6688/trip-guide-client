@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { serverFetch } from "@/lib/server-fetch";
 
+interface ReviewPayload {
+  bookingId: string;
+  rating: number;
+  comment?: string;
+}
+
 export async function getMyBookings() {
   try {
     const response = await serverFetch.get(`/booking/my`, {
@@ -78,4 +84,22 @@ export async function initiatePayment(bookingId: string) {
   }
 
   return response.json();
+}
+
+export async function postReview(payload: ReviewPayload) {
+  const response = await serverFetch.post("/review", {
+    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || "Failed to submit review");
+  }
+
+  const data = await response.json();
+  return data;
 }
