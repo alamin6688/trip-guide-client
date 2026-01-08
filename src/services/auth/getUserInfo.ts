@@ -35,14 +35,40 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
       };
     }
 
+    // userInfo = {
+    //   id: result.data.tourist?.id || result.data.id || "",
+    //   name:
+    //     result.data.admin?.name ||
+    //     result.data.guide?.name ||
+    //     result.data.tourist?.name ||
+    //     result.data.name ||
+    //     "Unknown User",
+    //   email: result.data.tourist?.email || "",
+    //   ...result.data,
+    // };
+
     userInfo = {
+      id:
+        result.data.tourist?.id ||
+        result.data.guide?.id ||
+        result.data.admin?.id ||
+        "",
       name:
-        result.data.admin?.name ||
-        result.data.guide?.name ||
         result.data.tourist?.name ||
-        result.data.name ||
+        result.data.guide?.name ||
+        result.data.admin?.name ||
         "Unknown User",
-      ...result.data,
+      email:
+        result.data.tourist?.email ||
+        result.data.guide?.email ||
+        result.data.admin?.email ||
+        "",
+      role: result.data.admin
+        ? "ADMIN"
+        : result.data.guide
+        ? "GUIDE"
+        : "TOURIST",
+      touristId: result.data.tourist?.id || null, // <-- this is key
     };
 
     return userInfo;

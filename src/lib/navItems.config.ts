@@ -94,12 +94,12 @@ export const touristNavItems: NavSection[] = [
   {
     title: "My Activity",
     items: [
-      {
-        title: "Saved Tours",
-        href: "/dashboard/saved-tours",
-        icon: "Heart",
-        roles: ["TOURIST"],
-      },
+      // {
+      //   title: "Saved Tours",
+      //   href: "/dashboard/saved-tours",
+      //   icon: "Heart",
+      //   roles: ["TOURIST"],
+      // },
       {
         title: "Reviews",
         href: "/dashboard/reviews",

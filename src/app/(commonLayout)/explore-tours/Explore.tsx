@@ -7,6 +7,9 @@ import { FilterModal, FilterValues } from "@/components/shared/FilterModal";
 import { motion } from "framer-motion";
 import { Search, Heart, CircleX, ListChevronsUpDown } from "lucide-react";
 import Image from "next/image";
+import { postBooking } from "@/services/tourist/touristsManagement";
+import { getUserInfo } from "@/services/auth/getUserInfo";
+import { toast } from "sonner";
 
 interface ExploreProps {
   initialListings: any[];
@@ -26,10 +29,24 @@ export default function Explore({
   const [appliedFilters, setAppliedFilters] = useState<FilterValues>({
     date: "",
   });
+  const [selectedListing, setSelectedListing] = useState<any | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const [user, setUser] = useState<any | null>(null);
 
   useEffect(() => {
     setExperiences(initialListings);
   }, [initialListings]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUserInfo();
+      setUser(user); // set a local state
+    };
+    fetchUser();
+  }, []);
 
   // Unique categories from initial listings
   const categories = Array.from(
@@ -267,6 +284,15 @@ export default function Explore({
                     <span className="text-gray-400 text-sm">/person</span>
                   </div>
                 </div>
+                <button
+                  onClick={() => {
+                    setSelectedListing(exp);
+                    setIsBookingModalOpen(true);
+                  }}
+                  className="mt-4 w-full bg-[#D4735E] text-white py-2 rounded-full font-medium hover:bg-[#b55b47] transition-colors"
+                >
+                  Book Now
+                </button>
               </div>
             </motion.div>
           ))}
@@ -276,6 +302,118 @@ export default function Explore({
           <p className="text-center text-gray-500 mt-10 text-lg">
             No results found
           </p>
+        )}
+
+        {isBookingModalOpen && selectedListing && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
+              <button
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                onClick={() => {
+                  setIsBookingModalOpen(false);
+                  setStartDate(null);
+                  setEndDate(null);
+                }}
+              >
+                ✕
+              </button>
+
+              <h2 className="text-2xl font-bold text-[#3D2E2E] mb-2">
+                {selectedListing.title}
+              </h2>
+              <p className="text-gray-500 mb-4">{selectedListing.city}</p>
+
+              <div className="mb-4">
+                <span className="font-semibold">Guide:</span>{" "}
+                {selectedListing.guide?.name || "Unknown"}
+              </div>
+              <div className="mb-4">
+                <span className="font-semibold">Price:</span> $
+                {selectedListing.price}/person
+              </div>
+
+              {/* Date Inputs */}
+              <div className="mb-4">
+                <label className="block font-semibold mb-1">Start Date:</label>
+                <input
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={startDate || ""}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-semibold mb-1">
+                  End Date (optional):
+                </label>
+                <input
+                  type="date"
+                  min={startDate || new Date().toISOString().split("T")[0]}
+                  value={endDate || ""}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
+                />
+              </div>
+
+              {/* Send Request Button */}
+              <button
+                disabled={!startDate || isBookingLoading}
+                onClick={async () => {
+                  if (!startDate) return;
+
+                  setIsBookingLoading(true); // start loading immediately
+
+                  try {
+                    // 1️⃣ Check user
+                    const userInfo = await getUserInfo();
+
+                    if (!userInfo || !userInfo.touristId) {
+                      toast.error("Only logged-in tourists can make bookings!");
+                      const currentPath =
+                        window.location.pathname + window.location.search;
+                      router.push(
+                        `/login?redirect=${encodeURIComponent(currentPath)}`
+                      );
+                      return;
+                    }
+
+                    // Now it's safe to call postBooking
+                    const result = await postBooking({
+                      listingId: selectedListing.id,
+                      startDate,
+                      endDate: endDate,
+                      user: userInfo,
+                    });
+
+                    if (!result.success) throw new Error(result.message);
+
+                    // 3️⃣ Success feedback
+                    toast.success("Booking request sent! Status: Pending");
+
+                    // Reset modal state
+                    setIsBookingModalOpen(false);
+                    setStartDate(null);
+                    setEndDate(null);
+                    router.push("/dashboard/my-bookings");
+                  } catch (err: any) {
+                    toast.error(err.message || "Something went wrong");
+                  } finally {
+                    setIsBookingLoading(false);
+                  }
+                }}
+                className="w-full bg-[#D4735E] text-white py-2 rounded-full font-medium hover:bg-[#b55b47] transition-colors disabled:opacity-50"
+              >
+                {isBookingLoading ? "Sending..." : "Send Request"}
+              </button>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>
