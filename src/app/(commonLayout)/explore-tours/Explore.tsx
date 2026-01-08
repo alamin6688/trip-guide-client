@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FilterModal, FilterValues } from "@/components/shared/FilterModal";
 import { motion } from "framer-motion";
-import { Search, Heart } from "lucide-react";
+import { Search, Heart, CircleX, ListChevronsUpDown } from "lucide-react";
 import Image from "next/image";
 
 interface ExploreProps {
@@ -23,55 +23,122 @@ export default function Explore({
   const [experiences, setExperiences] = useState<any[]>(initialListings);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(initialFilters?.search || "");
+  const [appliedFilters, setAppliedFilters] = useState<FilterValues>({
+    date: "",
+  });
 
   useEffect(() => {
     setExperiences(initialListings);
   }, [initialListings]);
-
-  const filteredExperiences = selectedCategory
-    ? experiences.filter((exp) => exp.categories?.title === selectedCategory)
-    : experiences;
 
   // Unique categories from initial listings
   const categories = Array.from(
     new Set(initialListings.map((exp) => exp.categories?.title))
   );
 
+  // Filter experiences based on applied filters and selected category
+  const filteredExperiences = experiences.filter((exp) => {
+    // Category
+    if (selectedCategory && selectedCategory !== "All") {
+      if (exp.categories?.title !== selectedCategory) return false;
+    }
+
+    // Date
+    if (appliedFilters.date) {
+      if (exp.date !== appliedFilters.date) return false;
+    }
+
+    // Price
+    if (
+      appliedFilters.minPrice !== undefined &&
+      exp.price < appliedFilters.minPrice
+    )
+      return false;
+    if (
+      appliedFilters.maxPrice !== undefined &&
+      exp.price > appliedFilters.maxPrice
+    )
+      return false;
+
+    // Rating
+    if (
+      appliedFilters.rating !== undefined &&
+      exp.rating < appliedFilters.rating
+    )
+      return false;
+
+    // Duration
+    if (appliedFilters.duration && appliedFilters.duration.length > 0) {
+      if (!appliedFilters.duration.includes(exp.duration)) return false;
+    }
+
+    // Languages
+    // New code — handles single or multiple selected languages
+    if (appliedFilters.languages && appliedFilters.languages.length > 0) {
+      // If the listing has no languages, skip it
+      if (!exp.guide?.languages || exp.guide.languages.length === 0)
+        return false;
+
+      // Check if at least one selected language exists in guide.languages
+      const matchesLanguage = appliedFilters.languages.some((lang) =>
+        exp.guide.languages.includes(lang)
+      );
+
+      if (!matchesLanguage) return false;
+    }
+
+    return true;
+  });
+
   const handleSearch = () => {
     startTransition(() => {
-      console.log("Clicked");
-      // create URLSearchParams from current filters
       const params = new URLSearchParams();
-
-      if (searchTerm) {
-        params.set("search", searchTerm);
-      } else {
-        params.delete("search");
-      }
-
+      if (searchTerm) params.set("search", searchTerm);
       router.push(`?${params.toString()}`);
     });
   };
 
   const handleApplyFilters = (filters: FilterValues) => {
-    startTransition(() => {
-      const params = new URLSearchParams();
+    // Save filters to state
+    setAppliedFilters(filters);
 
-      if (filters.minPrice !== undefined)
-        params.set("minPrice", String(filters.minPrice));
-      if (filters.maxPrice !== undefined)
-        params.set("maxPrice", String(filters.maxPrice));
-      if (filters.rating !== undefined)
-        params.set("rating", String(filters.rating));
-      if (filters.duration?.length)
-        params.set("duration", filters.duration.join(","));
-      if (filters.languages?.length)
-        params.set("languages", filters.languages.join(","));
+    // Update URL query params
+    const params = new URLSearchParams();
+    if (filters.minPrice !== undefined)
+      params.set("minPrice", String(filters.minPrice));
+    if (filters.maxPrice !== undefined)
+      params.set("maxPrice", String(filters.maxPrice));
+    if (filters.rating !== undefined)
+      params.set("rating", String(filters.rating));
+    if (filters.duration?.length)
+      params.set("duration", filters.duration.join(","));
+    if (filters.languages?.length)
+      params.set("languages", filters.languages.join(","));
+    if (filters.date) params.set("date", filters.date);
 
-      router.push(`?${params.toString()}`);
+    router.push(`?${params.toString()}`);
+    setIsFilterOpen(false);
+  };
+
+  const clearAllFilters = () => {
+    // Reset local state
+    setSelectedCategory(null);
+    setSearchTerm("");
+    setAppliedFilters({
+      date: "",
+      minPrice: undefined,
+      maxPrice: undefined,
+      rating: undefined,
+      duration: [],
+      languages: [],
     });
 
-    setIsFilterOpen(false);
+    // Optionally reset experiences to initial
+    setExperiences(initialListings);
+
+    // Reset URL query params
+    const params = new URLSearchParams();
+    router.push(`?${params.toString()}`);
   };
 
   return (
@@ -88,6 +155,7 @@ export default function Explore({
           Explore Experiences
         </h1>
 
+        {/* Search Bar */}
         <div className="mb-12 text-center flex flex-col md:flex-row items-center justify-center gap-6">
           <div className="bg-white p-2 rounded-full shadow-sm border border-[#3D2E2E]/5 flex items-center w-full md:w-2/3 lg:w-3/4">
             <Search className="w-5 h-5 text-gray-400 ml-4" />
@@ -107,30 +175,43 @@ export default function Explore({
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Category Filters */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
           <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
-            {[
-              "All",
-              ...Array.from(
-                new Set(initialListings.map((exp) => exp.categories?.title))
-              ),
-            ].map((category) => (
+            {["All", ...categories].map((category) => (
               <button
                 key={category}
                 onClick={() =>
                   setSelectedCategory(category === "All" ? null : category)
                 }
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                className={`px-4 py-2 rounded-full hover:bg-[#faa28f] hover:text-black hover:border-none text-sm font-medium whitespace-nowrap transition-all ${
                   selectedCategory === category ||
                   (category === "All" && selectedCategory === null)
-                    ? "bg-[#3D2E2E] text-white"
+                    ? "bg-[#D4735E] text-white"
                     : "bg-white text-[#3D2E2E] border border-[#3D2E2E]/10 hover:border-[#3D2E2E]/30"
                 }`}
               >
                 {category || "Unknown"}
               </button>
             ))}
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={clearAllFilters}
+              className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border border-[#3D2E2E]/10 bg-gray-50 hover:bg-[#D4735E]/10 transition-colors"
+            >
+              <span className="flex items-center justify-center gap-1 text-xl">
+                <CircleX className="" /> Clear All
+              </span>
+            </button>
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="bg-[#D4735E] text-white px-6 py-2 rounded-full font-medium hover:bg-[#b55b47] transition-colors"
+            >
+              <span className="flex items-center justify-center gap-2 text-xl">
+                <ListChevronsUpDown className="" /> More Filters
+              </span>
+            </button>
           </div>
         </div>
 
@@ -164,6 +245,7 @@ export default function Explore({
                   {exp.title}
                 </h3>
                 <p className="text-gray-500 mb-4 text-sm">{exp.city}</p>
+                {/* <p className="text-gray-500 mb-4 text-sm">Date: {exp.date}</p> */}
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2">
@@ -190,13 +272,12 @@ export default function Explore({
           ))}
         </div>
 
-        {experiences.length === 0 && (
+        {filteredExperiences.length === 0 && (
           <p className="text-center text-gray-500 mt-10 text-lg">
             No results found
           </p>
         )}
       </div>
     </div>
-    // </div>
   );
 }

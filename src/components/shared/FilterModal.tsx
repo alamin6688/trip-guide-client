@@ -6,6 +6,7 @@ export interface FilterValues {
   minPrice?: number;
   maxPrice?: number;
   rating?: number;
+  date: string;
   duration?: string[];
   languages?: string[];
 }
@@ -20,8 +21,11 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+
   const durations = ["< 2 hours", "2-4 hours", "Half Day", "Full Day"];
   const languages = ["English", "Spanish", "French", "Japanese", "Italian"];
+
   const toggleDuration = (duration: string) => {
     if (selectedDuration.includes(duration)) {
       setSelectedDuration(selectedDuration.filter((d) => d !== duration));
@@ -36,6 +40,19 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
       setSelectedLanguages([...selectedLanguages, lang]);
     }
   };
+
+  const handleApply = () => {
+    onApply({
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      rating: selectedRating || undefined,
+      duration: selectedDuration,
+      languages: selectedLanguages,
+      date: selectedDate, // pass selected date
+    });
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -86,6 +103,19 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
             </div>
 
             <div className="p-6 space-y-8">
+              {/* Date Filter */}
+              <section>
+                <h3 className="text-lg font-bold text-[#3D2E2E] mb-4">
+                  Select Date
+                </h3>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-[#3D2E2E]/10 bg-white text-[#3D2E2E]"
+                />
+              </section>
+
               {/* Price Range */}
               <section>
                 <h3 className="text-lg font-bold text-[#3D2E2E] mb-4">
@@ -106,63 +136,6 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
                     <span>${priceRange[0]}</span>
                     <span>${priceRange[1]}+</span>
                   </div>
-                </div>
-              </section>
-
-              {/* Rating */}
-              <section>
-                <h3 className="text-lg font-bold text-[#3D2E2E] mb-4">
-                  Guest Rating
-                </h3>
-                <div className="flex gap-3">
-                  {[5, 4, 3].map((rating) => (
-                    <button
-                      key={rating}
-                      onClick={() => setSelectedRating(rating)}
-                      className={`flex items-center gap-1 px-4 py-2 rounded-full border transition-all ${
-                        selectedRating === rating
-                          ? "bg-[#3D2E2E] text-white border-[#3D2E2E]"
-                          : "bg-white text-[#3D2E2E] border-[#3D2E2E]/10 hover:border-[#3D2E2E]/30"
-                      }`}
-                    >
-                      <span>{rating}+</span>
-                      <svg
-                        className={`w-4 h-4 ${
-                          selectedRating === rating
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-yellow-500"
-                        }`}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg>
-                    </button>
-                  ))}
-                </div>
-              </section>
-
-              {/* Duration */}
-              <section>
-                <h3 className="text-lg font-bold text-[#3D2E2E] mb-4">
-                  Duration
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {durations.map((duration) => (
-                    <button
-                      key={duration}
-                      onClick={() => toggleDuration(duration)}
-                      className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${
-                        selectedDuration.includes(duration)
-                          ? "bg-[#3D2E2E] text-white border-[#3D2E2E]"
-                          : "bg-white text-[#3D2E2E] border-[#3D2E2E]/10 hover:border-[#3D2E2E]/30"
-                      }`}
-                    >
-                      {duration}
-                    </button>
-                  ))}
                 </div>
               </section>
 
@@ -204,16 +177,27 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
                   setSelectedRating(null);
                   setSelectedDuration([]);
                   setSelectedLanguages([]);
+                  // Immediately apply cleared filters
+                  onApply({
+                    minPrice: 0,
+                    maxPrice: 500,
+                    rating: undefined,
+                    duration: [],
+                    languages: [],
+                    date: "",
+                  });
+                  // Close modal (optional)
+                  onClose();
                 }}
                 className="flex-1 px-6 py-3 rounded-full font-bold text-[#3D2E2E] hover:bg-[#3D2E2E]/5 transition-colors"
               >
                 Clear All
               </button>
               <button
-                onClick={onClose}
+                onClick={handleApply}
                 className="flex-2 px-6 py-3 rounded-full font-bold text-white bg-[#D4735E] hover:bg-[#b55b47] transition-colors shadow-lg shadow-[#D4735E]/20"
               >
-                Show 124 Results
+                Show Results
               </button>
             </div>
           </motion.div>
