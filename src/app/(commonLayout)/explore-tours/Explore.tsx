@@ -11,6 +11,10 @@ import { postBooking } from "@/services/tourist/touristsManagement";
 import { getUserInfo } from "@/services/auth/getUserInfo";
 import { toast } from "sonner";
 
+// const imgUrl = "https://i.ibb.co/YttkYVj/clay-banks-kiv1ggvkg-Qk-unsplash.jpg";
+// const FALLBACK_IMAGE =
+//   "https://i.ibb.co/4g3S98Fy/1-7-KCp-GW9-D2r-Il-NV2-Jh-Fsp-Q.png";
+
 interface ExploreProps {
   initialListings: any[];
   initialFilters: Record<string, string | undefined>;
@@ -244,9 +248,10 @@ export default function Explore({
             >
               <div className="relative h-64 overflow-hidden">
                 <Image
-                  src={exp.images?.[0]}
+                  src={exp.images}
                   alt={exp.title}
                   fill
+                  unoptimized
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <button className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full text-[#3D2E2E] hover:text-[#D4735E] transition-colors">
@@ -266,10 +271,12 @@ export default function Explore({
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="rounded-full bg-gray-200 relative h-8 w-8 overflow-hidden">
                       <Image
-                        src={exp.guide?.profilePhoto}
+                        src={exp.guide.profilePhoto}
                         alt="guide"
+                        fill
+                        // unoptimized
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -354,9 +361,7 @@ export default function Explore({
               </div>
 
               <div className="mb-4">
-                <label className="block font-semibold mb-1">
-                  End Date (optional):
-                </label>
+                <label className="block font-semibold mb-1">End Date:</label>
                 <input
                   type="date"
                   min={startDate || new Date().toISOString().split("T")[0]}

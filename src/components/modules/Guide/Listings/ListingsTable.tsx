@@ -3,7 +3,6 @@
 
 import ManagementTable from "@/components/shared/ManagementTable";
 import DeleteConfirmationDialog from "@/components/shared/DeleteConfirmationDialog";
-// import { deleteListing } from "@/services/listings/listings.actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";

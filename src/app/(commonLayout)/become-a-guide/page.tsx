@@ -320,7 +320,6 @@ export default function BecomeAGuidePage() {
 
             <div className="text-center mt-16">
               <button className="bg-[#D4735E] text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-[#b55b47] transition-all shadow-lg inline-flex items-center gap-2">
-                Get Started Today
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

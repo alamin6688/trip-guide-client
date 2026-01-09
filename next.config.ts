@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
     remotePatterns: [
+  
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
@@ -16,10 +17,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "ibb.co.com",
       },
     ],
   },

@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createListing } from "@/services/admin/guidesManagement";
-import { getCategories } from "@/services/admin/guidesManagement"; // ✅ import your function
+import { getCategories } from "@/services/admin/guidesManagement";
 
 interface Props {
   open: boolean;
@@ -25,11 +25,22 @@ interface Category {
   icon?: string;
 }
 
+const LANGUAGE_OPTIONS = [
+  "English",
+  "Italian",
+  "Japanese",
+  "Arabic",
+  "Spanish",
+  "Hindi",
+  "Bangla",
+];
+
 const ListingFormDialog = ({ open, onClose }: Props) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [fetchingCategories, setFetchingCategories] = useState(false);
+  const [languages, setLanguages] = useState<string[]>([]);
 
   const fetchCategories = async () => {
     try {
@@ -51,6 +62,14 @@ const ListingFormDialog = ({ open, onClose }: Props) => {
     if (open) fetchCategories();
   }, [open]);
 
+   const handleLanguageToggle = (lang: string) => {
+    setLanguages((prev) =>
+      prev.includes(lang)
+        ? prev.filter((l) => l !== lang)
+        : [...prev, lang]
+    );
+  };
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
@@ -67,8 +86,8 @@ const ListingFormDialog = ({ open, onClose }: Props) => {
       maxGroupSize: Number(form.maxGroupSize.value),
       city: form.city.value,
       categoryId: form.categoryId.value,
-      languages: [],
-      images: [],
+      images: form.images.value,
+      languages,
       isActive: true,
     };
     console.log(payload);
@@ -84,12 +103,26 @@ const ListingFormDialog = ({ open, onClose }: Props) => {
       return;
     }
 
+    if (!payload.images.startsWith("http")) {
+      toast.error("Please provide a valid image URL");
+      setLoading(false);
+      return;
+    }
+
+    if (languages.length === 0) {
+      toast.error("Please select at least one language");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await createListing(payload);
 
       if (res.success) {
         toast.success(res.message || "Listing created successfully!");
+        console.log(res);
         form.reset();
+        setLanguages([]);
         onClose();
         router.refresh();
       } else {
@@ -122,19 +155,19 @@ const ListingFormDialog = ({ open, onClose }: Props) => {
             className="w-full border-2 p-2 rounded-2xl"
             required
           />
-          <input
+          {/* <input
             name="images"
             type="file"
             multiple
             accept="image/*"
             className="w-full border-2 p-2 rounded-2xl"
-          />
-          {/* <input
+          /> */}
+          <input
             name="images"
-            placeholder="Paste a valid image Url less than 1 MB"
+            placeholder="Paste a valid image URL"
             className="w-full border-2 p-2 rounded-2xl"
             required
-          /> */}
+          />
           <input
             name="city"
             placeholder="City"
@@ -192,6 +225,22 @@ const ListingFormDialog = ({ open, onClose }: Props) => {
             className="w-full border-2 p-2 rounded-2xl"
             required
           />
+
+           <div>
+            <p className="text-sm font-medium mb-2">Languages</p>
+            <div className="flex flex-wrap gap-3">
+              {LANGUAGE_OPTIONS.map((lang) => (
+                <label key={lang} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={languages.includes(lang)}
+                    onChange={() => handleLanguageToggle(lang)}
+                  />
+                  <span>{lang}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? "Creating..." : "Create Listing"}
