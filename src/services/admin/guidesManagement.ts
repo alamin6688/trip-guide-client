@@ -495,7 +495,6 @@ export async function deleteListing(id: string) {
   }
 }
 
-
 export async function getBookingsForGuide(queryString?: string) {
   try {
     const url = `/booking${queryString ? `?${queryString}` : ""}`;

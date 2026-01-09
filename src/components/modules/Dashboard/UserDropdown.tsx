@@ -60,7 +60,7 @@ const UserDropdown = ({ userInfo }: UserDropdownProps) => {
           onClick={handleLogout}
           className="cursor-pointer text-red-600"
         >
-          <LogoutButton />
+          <LogoutButton onLogout={handleLogout} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

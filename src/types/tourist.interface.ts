@@ -3,7 +3,7 @@ import { Gender } from "./guide.interface";
 import { IReview } from "./review.interface";
 
 export interface ITourist {
-  id?: string;
+  id: string;
 
   email: string;
   name: string;
