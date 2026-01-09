@@ -1,5 +1,6 @@
 import { getListings } from "@/services/admin/guidesManagement";
 import Explore from "./Explore";
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   searchParams: Record<string, string | undefined>;
