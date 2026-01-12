@@ -25,6 +25,7 @@ const serverFetchHelper = async (
       // ...(accessToken ? { "Authorization": accessToken } : {}),
     },
     ...restOptions,
+     credentials: "include", 
   });
 
   return response;
