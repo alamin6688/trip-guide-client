@@ -12,20 +12,25 @@ const serverFetchHelper = async (
   const { headers, ...restOptions } = options;
   const accessToken = await getCookie("accessToken");
 
+
   //to stop recursion loop
-  if (endpoint !== "/auth/refresh-token") {
-    await getNewAccessToken();
-  }
+  // if (endpoint !== "/auth/refresh-token") {
+  //   await getNewAccessToken();
+  // }
+
+  if (accessToken && endpoint !== "/auth/login" && endpoint !== "/auth/refresh-token") {
+  await getNewAccessToken();
+}
 
   const response = await fetch(`${BACKEND_API_URL}${endpoint}`, {
     headers: {
-      Cookie: accessToken ? `accessToken=${accessToken}` : "",
+      // Cookie: accessToken ? `accessToken=${accessToken}` : "",
       ...headers,
       // ...(accessToken ? { "Authorization": `Bearer ${accessToken}` } : {}),
       // ...(accessToken ? { "Authorization": accessToken } : {}),
     },
+    credentials: "include", 
     ...restOptions,
-     credentials: "include", 
   });
 
   return response;
