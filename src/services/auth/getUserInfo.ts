@@ -10,8 +10,10 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
   let userInfo: UserInfo | any;
   try {
     const response = await serverFetch.get("/auth/me", {
-      cache: "force-cache",
-      next: { tags: ["user-info"] },
+      next: {
+        tags: ["user-info"],
+        revalidate: 180,
+      },
     });
 
     const result = await response.json();
@@ -25,7 +27,7 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
 
       const verifiedToken = jwt.verify(
         accessToken,
-        process.env.access_token_secret as string
+        process.env.ACCESS_TOKEN_SECRET as string,
       ) as JwtPayload;
 
       userInfo = {
@@ -34,18 +36,6 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
         role: verifiedToken.role,
       };
     }
-
-    // userInfo = {
-    //   id: result.data.tourist?.id || result.data.id || "",
-    //   name:
-    //     result.data.admin?.name ||
-    //     result.data.guide?.name ||
-    //     result.data.tourist?.name ||
-    //     result.data.name ||
-    //     "Unknown User",
-    //   email: result.data.tourist?.email || "",
-    //   ...result.data,
-    // };
 
     userInfo = {
       id:
@@ -66,8 +56,8 @@ export const getUserInfo = async (): Promise<UserInfo | any> => {
       role: result.data.admin
         ? "ADMIN"
         : result.data.guide
-        ? "GUIDE"
-        : "TOURIST",
+          ? "GUIDE"
+          : "TOURIST",
       touristId: result.data.tourist?.id || null, // <-- this is key
     };
 
