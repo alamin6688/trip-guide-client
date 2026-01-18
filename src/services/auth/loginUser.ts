@@ -18,6 +18,8 @@ export const loginUser = async (
   _currentState: any,
   formData: any
 ): Promise<any> => {
+  let redirectPath: string | null = null;
+
   try {
     const redirectTo = formData.get("redirect") || null;
     let accessTokenObject: null | any = null;
@@ -104,31 +106,23 @@ export const loginUser = async (
     if (redirectTo && result.data.needPasswordChange) {
       const requestedPath = redirectTo.toString();
       if (isValidRedirectForRole(requestedPath, userRole)) {
-        redirect(`/reset-password?redirect=${requestedPath}`);
+        redirectPath = `/reset-password?redirect=${requestedPath}`;
       } else {
-        redirect("/reset-password");
+        redirectPath = "/reset-password";
       }
-    }
-
-    if (result.data.needPasswordChange) {
-      redirect("/reset-password");
-    }
-
-    if (redirectTo) {
+    } else if (result.data.needPasswordChange) {
+      redirectPath = "/reset-password";
+    } else if (redirectTo) {
       const requestedPath = redirectTo.toString();
       if (isValidRedirectForRole(requestedPath, userRole)) {
-        redirect(`${requestedPath}?loggedIn=true`);
+        redirectPath = `${requestedPath}?loggedIn=true`;
       } else {
-        redirect(`${getDefaultDashboardRoute(userRole)}?loggedIn=true`);
+        redirectPath = `${getDefaultDashboardRoute(userRole)}?loggedIn=true`;
       }
     } else {
-      redirect(`${getDefaultDashboardRoute(userRole)}?loggedIn=true`);
+      redirectPath = `${getDefaultDashboardRoute(userRole)}?loggedIn=true`;
     }
   } catch (error: any) {
-    // Re-throw NEXT_REDIRECT errors so Next.js can handle them
-    if (error?.digest?.startsWith("NEXT_REDIRECT")) {
-      throw error;
-    }
     console.log(error);
     return {
       success: false,
@@ -138,5 +132,9 @@ export const loginUser = async (
           : "Login Failed. You might have entered incorrect email or password."
       }`,
     };
+  }
+
+  if (redirectPath) {
+    redirect(redirectPath);
   }
 };
