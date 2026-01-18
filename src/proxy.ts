@@ -38,7 +38,27 @@ export async function proxy(request: NextRequest) {
   if (tokenRefreshResult?.tokenRefreshed) {
     const url = request.nextUrl.clone();
     url.searchParams.set(REFRESH_PARAM, "true");
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+
+    if (tokenRefreshResult.accessToken && tokenRefreshResult.accessTokenOptions) {
+      response.cookies.set(
+        "accessToken",
+        tokenRefreshResult.accessToken,
+        tokenRefreshResult.accessTokenOptions
+      );
+    }
+
+    if (
+      tokenRefreshResult.refreshToken &&
+      tokenRefreshResult.refreshTokenOptions
+    ) {
+      response.cookies.set(
+        "refreshToken",
+        tokenRefreshResult.refreshToken,
+        tokenRefreshResult.refreshTokenOptions
+      );
+    }
+    return response;
   }
 
   /* ------------------------------------------------

@@ -50,11 +50,10 @@ export async function updateMyProfile(formData: FormData) {
     console.log(error);
     return {
       success: false,
-      message: `${
-        process.env.NODE_ENV === "development"
+      message: `${process.env.NODE_ENV === "development"
           ? error.message
           : "Something went wrong"
-      }`,
+        }`,
     };
   }
 }
@@ -217,23 +216,35 @@ export async function getNewAccessToken() {
     }
 
     await deleteCookie("accessToken");
-    await setCookie("accessToken", accessTokenObject.accessToken, {
+    const accessTokenOptions = {
       secure: true,
       httpOnly: true,
       maxAge: parseInt(accessTokenObject["Max-Age"]) || 1000 * 60 * 60,
       path: accessTokenObject.Path || "/",
       sameSite: accessTokenObject["SameSite"] || "none",
-    });
+    } as const;
+
+    await setCookie(
+      "accessToken",
+      accessTokenObject.accessToken,
+      accessTokenOptions
+    );
 
     await deleteCookie("refreshToken");
-    await setCookie("refreshToken", refreshTokenObject.refreshToken, {
+    const refreshTokenOptions = {
       secure: true,
       httpOnly: true,
       maxAge:
         parseInt(refreshTokenObject["Max-Age"]) || 1000 * 60 * 60 * 24 * 90,
       path: refreshTokenObject.Path || "/",
       sameSite: refreshTokenObject["SameSite"] || "none",
-    });
+    } as const;
+
+    await setCookie(
+      "refreshToken",
+      refreshTokenObject.refreshToken,
+      refreshTokenOptions
+    );
 
     if (!result.success) {
       throw new Error(result.message || "Token refresh failed");
@@ -243,6 +254,10 @@ export async function getNewAccessToken() {
       tokenRefreshed: true,
       success: true,
       message: "Token refreshed successfully",
+      accessToken: accessTokenObject.accessToken,
+      refreshToken: refreshTokenObject.refreshToken,
+      accessTokenOptions,
+      refreshTokenOptions,
     };
   } catch (error: any) {
     return {
