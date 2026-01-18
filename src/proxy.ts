@@ -24,21 +24,20 @@ export async function proxy(request: NextRequest) {
   }
 
   /* ------------------------------------------------
-   * 1️⃣ Handle refresh redirect cleanup
+   * 1️⃣ Handle refresh redirect cleanup (REMOVED)
    * ------------------------------------------------ */
-  if (request.nextUrl.searchParams.has(REFRESH_PARAM)) {
-    const url = request.nextUrl.clone();
-    url.searchParams.delete(REFRESH_PARAM);
-    return NextResponse.redirect(url);
-  }
+  // if (request.nextUrl.searchParams.has(REFRESH_PARAM)) {
+  //   const url = request.nextUrl.clone();
+  //   url.searchParams.delete(REFRESH_PARAM);
+  //   return NextResponse.redirect(url);
+  // }
+
   /* ------------------------------------------------
    * 2️⃣ Try refreshing token (silent)
    * ------------------------------------------------ */
   const tokenRefreshResult = await getNewAccessToken();
   if (tokenRefreshResult?.tokenRefreshed) {
-    const url = request.nextUrl.clone();
-    url.searchParams.set(REFRESH_PARAM, "true");
-    const response = NextResponse.redirect(url);
+    const response = NextResponse.next();
 
     if (tokenRefreshResult.accessToken && tokenRefreshResult.accessTokenOptions) {
       response.cookies.set(
