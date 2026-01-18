@@ -11,115 +11,108 @@ import { getUserInfo } from "./services/auth/getUserInfo";
 import { deleteCookie, getCookie } from "./services/auth/tokenHandlers";
 import { getNewAccessToken } from "./services/auth/auth.service";
 
-// This function can be marked `async` if using `await` inside
+const REFRESH_PARAM = "refreshToken";
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const hasTokenRefreshedParam =
-    request.nextUrl.searchParams.has("tokenRefreshed");
 
-  // If coming back after token refresh, remove the param and continue
-  if (hasTokenRefreshedParam) {
-    const url = request.nextUrl.clone();
-    url.searchParams.delete("tokenRefreshed");
-    return NextResponse.redirect(url);
+  /* ------------------------------------------------
+   * 0️⃣ Skip ALL refresh logic on auth routes
+   * ------------------------------------------------ */
+  if (isAuthRoute(pathname)) {
+    return NextResponse.next();
   }
 
+  /* ------------------------------------------------
+   * 1️⃣ Handle refresh redirect cleanup
+   * ------------------------------------------------ */
+  if (request.nextUrl.searchParams.has(REFRESH_PARAM)) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete(REFRESH_PARAM);
+    return NextResponse.redirect(url);
+  }
+  /* ------------------------------------------------
+   * 2️⃣ Try refreshing token (silent)
+   * ------------------------------------------------ */
   const tokenRefreshResult = await getNewAccessToken();
-
-  // If token was refreshed, redirect to same page to fetch with new token
   if (tokenRefreshResult?.tokenRefreshed) {
     const url = request.nextUrl.clone();
-    url.searchParams.set("tokenRefreshed", "true");
+    url.searchParams.set(REFRESH_PARAM, "true");
     return NextResponse.redirect(url);
   }
 
-  // const accessToken = request.cookies.get("accessToken")?.value || null;
-
+  /* ------------------------------------------------
+   * 3️⃣ Read & verify access token
+   * ------------------------------------------------ */
   const accessToken = (await getCookie("accessToken")) || null;
-
   let userRole: UserRole | null = null;
-  if (accessToken) {
-    const verifiedToken: JwtPayload | string = jwt.verify(
-      accessToken,
-      process.env.access_token_secret as string
-    );
 
-    if (typeof verifiedToken === "string") {
+  if (accessToken) {
+    try {
+      const decoded = jwt.verify(
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET as string,
+      ) as JwtPayload;
+
+      userRole = decoded.role as UserRole;
+    } catch {
       await deleteCookie("accessToken");
       await deleteCookie("refreshToken");
       return NextResponse.redirect(new URL("/login", request.url));
     }
-
-    userRole = verifiedToken.role;
   }
 
   const routerOwner = getRouteOwner(pathname);
-  //path = /guide/bookings => "GUIDE"
-  //path = /my-profile => "COMMON"
-  //path = /login => null
 
-  const isAuth = isAuthRoute(pathname);
-
-  // Rule 1 : User is logged in and trying to access auth route. Redirect to default dashboard
-  if (accessToken && isAuth) {
-    return NextResponse.redirect(
-      new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
-    );
-  }
-
-  // Rule 2 : User is trying to access open public route
+  /* ------------------------------------------------
+   * 4️⃣ Public routes
+   * ------------------------------------------------ */
   if (routerOwner === null) {
     return NextResponse.next();
   }
 
-  // Rule 1 & 2 for open public routes and auth routes
-
+  /* ------------------------------------------------
+   * 5️⃣ Not logged in → redirect to login
+   * ------------------------------------------------ */
   if (!accessToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Rule 3 : User need password change
+  /* ------------------------------------------------
+   * 6️⃣ Force password reset
+   * ------------------------------------------------ */
+  const userInfo = await getUserInfo();
 
-  if (accessToken) {
-    const userInfo = await getUserInfo();
-    if (userInfo.needPasswordChange) {
-      if (pathname !== "/reset-password") {
-        const resetPasswordUrl = new URL("/reset-password", request.url);
-        resetPasswordUrl.searchParams.set("redirect", pathname);
-        return NextResponse.redirect(resetPasswordUrl);
-      }
-      return NextResponse.next();
+  if (userInfo.needPasswordChange) {
+    if (pathname !== "/reset-password") {
+      const resetUrl = new URL("/reset-password", request.url);
+      resetUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(resetUrl);
     }
-
-    if (
-      userInfo &&
-      !userInfo.needPasswordChange &&
-      pathname === "/reset-password"
-    ) {
-      return NextResponse.redirect(
-        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
-      );
-    }
+    return NextResponse.next();
   }
 
-  // Rule 4 : User is trying to access common protected route
+  if (!userInfo.needPasswordChange && pathname === "/reset-password") {
+    return NextResponse.redirect(
+      new URL(getDefaultDashboardRoute(userRole!), request.url),
+    );
+  }
+  /* ------------------------------------------------
+   * 7️⃣ Common protected routes
+   * ------------------------------------------------ */
   if (routerOwner === "COMMON") {
     return NextResponse.next();
   }
 
-  // Rule 5 : User is trying to access role based protected route
-  if (
-    routerOwner === "ADMIN" ||
-    routerOwner === "GUIDE" ||
-    routerOwner === "TOURIST"
-  ) {
-    if (userRole !== routerOwner) {
-      return NextResponse.redirect(
-        new URL(getDefaultDashboardRoute(userRole as UserRole), request.url)
-      );
-    }
+  /* ------------------------------------------------
+   * 8️⃣ Role-based protected routes
+   * ------------------------------------------------ */
+  if (routerOwner !== userRole) {
+    return NextResponse.redirect(
+      new URL(getDefaultDashboardRoute(userRole!), request.url),
+    );
   }
 
   return NextResponse.next();
@@ -127,13 +120,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-     */
     "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.well-known).*)",
   ],
 };
