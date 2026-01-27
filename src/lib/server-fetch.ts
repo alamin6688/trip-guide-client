@@ -4,6 +4,10 @@ import { getCookie } from "@/services/auth/tokenHandlers";
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BASE_API_URL || "http://localhost:5000/api";
 
+if (!process.env.NEXT_PUBLIC_BASE_API_URL && process.env.NODE_ENV === "production") {
+  console.warn("⚠️ NEXT_PUBLIC_BASE_API_URL is not set. Using default localhost URL, which may fail in production.");
+}
+
 // /auth/login
 const serverFetchHelper = async (
   endpoint: string,
@@ -13,20 +17,14 @@ const serverFetchHelper = async (
   const accessToken = await getCookie("accessToken");
 
   //to stop recursion loop
-  if (endpoint !== "/auth/refresh-token") {
+  if (endpoint !== "/auth/refresh-token" && endpoint !== "/auth/login") {
     await getNewAccessToken();
   }
-
-  //   if (accessToken && endpoint !== "/auth/login" && endpoint !== "/auth/refresh-token") {
-  //   await getNewAccessToken();
-  // }
 
   const response = await fetch(`${BACKEND_API_URL}${endpoint}`, {
     headers: {
       Cookie: accessToken ? `accessToken=${accessToken}` : "",
       ...headers,
-      // ...(accessToken ? { "Authorization": `Bearer ${accessToken}` } : {}),
-      // ...(accessToken ? { "Authorization": accessToken } : {}),
     },
     ...restOptions,
   });

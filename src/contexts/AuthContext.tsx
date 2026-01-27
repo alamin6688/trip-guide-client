@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
-import { getCookie } from "@/services/auth/tokenHandlers";
+import { checkAuthStatus } from "@/lib/clientAuthCheck";
 
 interface AuthContextType {
     isAuthenticated: boolean | null;
@@ -17,11 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+
     const checkAuth = useCallback(async () => {
         setIsLoading(true);
         try {
-            const token = await getCookie("accessToken");
-            setIsAuthenticated(!!token);
+            const isAuth = await checkAuthStatus();
+            setIsAuthenticated(isAuth);
         } catch (error) {
             setIsAuthenticated(false);
         } finally {
