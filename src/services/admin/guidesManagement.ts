@@ -88,8 +88,8 @@ export async function createGuide(_prevState: any, formData: FormData) {
         experience: data.experience,
         guideCategories: Array.isArray(data.guideCategories)
           ? data.guideCategories.map((gc: any) => ({
-              categoryId: gc.id,
-            }))
+            categoryId: gc.id,
+          }))
           : [],
       },
     };
@@ -110,11 +110,10 @@ export async function createGuide(_prevState: any, formData: FormData) {
     console.log(error);
     return {
       success: false,
-      message: `${
-        process.env.NODE_ENV === "development"
+      message: `${process.env.NODE_ENV === "development"
           ? error.message
           : "Something went wrong"
-      }`,
+        }`,
     };
   }
 }
@@ -244,7 +243,7 @@ export async function updateGuide(
       if (Array.isArray(parsed) && parsed.length > 0) {
         validationPayload.guideCategories = parsed.map((id) => ({ id } as any));
       }
-    } catch {}
+    } catch { }
   }
 
   // Parse removed categories (handle separately)
@@ -256,7 +255,7 @@ export async function updateGuide(
       if (Array.isArray(parsed) && parsed.length > 0) {
         removedCategories = parsed;
       }
-    } catch {}
+    } catch { }
   }
 
   const validatedPayload = zodValidator(
@@ -401,7 +400,7 @@ export async function getListings(queryString?: string) {
     const response = await serverFetch.get(
       `/listings${queryString ? `?${queryString}` : ""}`,
       {
-        cache: "force-cache",
+        cache: "no-store",
         next: { tags: ["listings-list"] },
       }
     );

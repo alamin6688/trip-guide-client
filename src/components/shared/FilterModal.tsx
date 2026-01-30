@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,13 +15,24 @@ interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
   onApply: (filters: FilterValues) => void;
+  initialValues?: FilterValues;
 }
-export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
-  const [priceRange, setPriceRange] = useState([0, 500]);
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [selectedDuration, setSelectedDuration] = useState<string[]>([]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>("");
+export function FilterModal({ isOpen, onClose, onApply, initialValues }: FilterModalProps) {
+  const [priceRange, setPriceRange] = useState([initialValues?.minPrice || 0, initialValues?.maxPrice || 500]);
+  const [selectedRating, setSelectedRating] = useState<number | null>(initialValues?.rating || null);
+  const [selectedDuration, setSelectedDuration] = useState<string[]>(initialValues?.duration || []);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(initialValues?.languages || []);
+  const [selectedDate, setSelectedDate] = useState<string>(initialValues?.date || "");
+
+  useEffect(() => {
+    if (isOpen && initialValues) {
+      setPriceRange([initialValues.minPrice ?? 0, initialValues.maxPrice ?? 500]);
+      setSelectedRating(initialValues.rating ?? null);
+      setSelectedDuration(initialValues.duration || []);
+      setSelectedLanguages(initialValues.languages || []);
+      setSelectedDate(initialValues.date || "");
+    }
+  }, [isOpen, initialValues]);
 
   const durations = ["< 2 hours", "2-4 hours", "Half Day", "Full Day"];
   const languages = ["English", "Spanish", "French", "Japanese", "Italian"];
@@ -151,11 +162,10 @@ export function FilterModal({ isOpen, onClose, onApply }: FilterModalProps) {
                       className="flex items-center gap-3 cursor-pointer group"
                     >
                       <div
-                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                          selectedLanguages.includes(lang)
+                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedLanguages.includes(lang)
                             ? "bg-[#D4735E] border-[#D4735E]"
                             : "border-gray-300 group-hover:border-[#D4735E]"
-                        }`}
+                          }`}
                         onClick={() => toggleLanguage(lang)}
                       >
                         {selectedLanguages.includes(lang) && (

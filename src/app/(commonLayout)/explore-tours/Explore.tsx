@@ -4,7 +4,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FilterModal, FilterValues } from "@/components/shared/FilterModal";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, Heart, CircleX, ListChevronsUpDown } from "lucide-react";
 import Image from "next/image";
 import { postBooking } from "@/services/tourist/touristsManagement";
@@ -18,11 +18,13 @@ import { toast } from "sonner";
 interface ExploreProps {
   initialListings: any[];
   initialFilters: Record<string, string | undefined>;
+  allCategories: any[];
 }
 
 export default function Explore({
   initialListings,
   initialFilters,
+  allCategories,
 }: ExploreProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -52,90 +54,72 @@ export default function Explore({
     fetchUser();
   }, []);
 
-  // Unique categories from initial listings
-  const categories = Array.from(
-    new Set(initialListings.map((exp) => exp.categories?.title))
-  );
-
-  // Filter experiences based on applied filters and selected category
-  const filteredExperiences = experiences.filter((exp) => {
-    // Category
-    if (selectedCategory && selectedCategory !== "All") {
-      if (exp.categories?.title !== selectedCategory) return false;
+  // Initialize state from URL params
+  useEffect(() => {
+    if (initialFilters) {
+      setSearchTerm(initialFilters.search || "");
+      setSelectedCategory(initialFilters.category || null);
+      setAppliedFilters({
+        date: initialFilters.date || "",
+        minPrice: initialFilters.minPrice ? Number(initialFilters.minPrice) : undefined,
+        maxPrice: initialFilters.maxPrice ? Number(initialFilters.maxPrice) : undefined,
+        rating: initialFilters.rating ? Number(initialFilters.rating) : undefined,
+        duration: initialFilters.duration ? initialFilters.duration.split(",") : [],
+        languages: initialFilters.languages ? initialFilters.languages.split(",") : [],
+      });
     }
+  }, [initialFilters]);
 
-    // Date
-    if (appliedFilters.date) {
-      if (exp.date !== appliedFilters.date) return false;
-    }
-
-    // Price
-    if (
-      appliedFilters.minPrice !== undefined &&
-      exp.price < appliedFilters.minPrice
-    )
-      return false;
-    if (
-      appliedFilters.maxPrice !== undefined &&
-      exp.price > appliedFilters.maxPrice
-    )
-      return false;
-
-    // Rating
-    if (
-      appliedFilters.rating !== undefined &&
-      exp.rating < appliedFilters.rating
-    )
-      return false;
-
-    // Duration
-    if (appliedFilters.duration && appliedFilters.duration.length > 0) {
-      if (!appliedFilters.duration.includes(exp.duration)) return false;
-    }
-
-    // Languages
-    // New code — handles single or multiple selected languages
-    if (appliedFilters.languages && appliedFilters.languages.length > 0) {
-      // If the listing has no languages, skip it
-      if (!exp.guide?.languages || exp.guide.languages.length === 0)
-        return false;
-
-      // Check if at least one selected language exists in guide.languages
-      const matchesLanguage = appliedFilters.languages.some((lang) =>
-        exp.guide.languages.includes(lang)
-      );
-
-      if (!matchesLanguage) return false;
-    }
-
-    return true;
-  });
+  // Use categories from prop instead of deriving from filtered listings
+  const categories = allCategories.map((cat) => cat.title).filter(Boolean);
 
   const handleSearch = () => {
     startTransition(() => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.set("search", searchTerm);
+      const params = new URLSearchParams(window.location.search);
+      if (searchTerm) {
+        params.set("search", searchTerm);
+      } else {
+        params.delete("search");
+      }
       router.push(`?${params.toString()}`);
     });
   };
+
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    const params = new URLSearchParams(window.location.search);
+    if (category) {
+      params.set("category", category);
+    } else {
+      params.delete("category");
+    }
+    router.push(`?${params.toString()}`);
+  }
 
   const handleApplyFilters = (filters: FilterValues) => {
     // Save filters to state
     setAppliedFilters(filters);
 
     // Update URL query params
-    const params = new URLSearchParams();
-    if (filters.minPrice !== undefined)
-      params.set("minPrice", String(filters.minPrice));
-    if (filters.maxPrice !== undefined)
-      params.set("maxPrice", String(filters.maxPrice));
-    if (filters.rating !== undefined)
-      params.set("rating", String(filters.rating));
-    if (filters.duration?.length)
-      params.set("duration", filters.duration.join(","));
-    if (filters.languages?.length)
-      params.set("languages", filters.languages.join(","));
+    const params = new URLSearchParams(window.location.search);
+
+    if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
+    else params.delete("minPrice");
+
+    if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));
+    else params.delete("maxPrice");
+
+    if (filters.rating !== undefined) params.set("rating", String(filters.rating));
+    else params.delete("rating");
+
+    if (filters.duration?.length) params.set("duration", filters.duration.join(","));
+    else params.delete("duration");
+
+    if (filters.languages?.length) params.set("languages", filters.languages.join(","));
+    else params.delete("languages");
+
     if (filters.date) params.set("date", filters.date);
+    else params.delete("date");
 
     router.push(`?${params.toString()}`);
     setIsFilterOpen(false);
@@ -154,12 +138,8 @@ export default function Explore({
       languages: [],
     });
 
-    // Optionally reset experiences to initial
-    setExperiences(initialListings);
-
     // Reset URL query params
-    const params = new URLSearchParams();
-    router.push(`?${params.toString()}`);
+    router.push("?");
   };
 
   return (
@@ -169,6 +149,7 @@ export default function Explore({
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         onApply={handleApplyFilters}
+        initialValues={appliedFilters}
       />
 
       <div className="container mx-auto pt-24 pb-20 px-4 sm:px-6 lg:px-8">
@@ -185,6 +166,7 @@ export default function Explore({
               placeholder="Where do you want to go?"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               className="flex-1 px-4 py-2 outline-none text-[#3D2E2E] placeholder-gray-400"
             />
             <button
@@ -201,18 +183,17 @@ export default function Explore({
           <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
             {["All", ...categories].map((category) => (
               <button
-                key={category}
+                key={category as string}
                 onClick={() =>
-                  setSelectedCategory(category === "All" ? null : category)
+                  handleCategoryChange(category === "All" ? null : category as string)
                 }
-                className={`px-4 py-2 rounded-full hover:bg-[#faa28f] hover:text-black hover:border-none text-sm font-medium whitespace-nowrap transition-all ${
-                  selectedCategory === category ||
+                className={`px-4 py-2 rounded-full hover:bg-[#faa28f] hover:text-black hover:border-none text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === category ||
                   (category === "All" && selectedCategory === null)
-                    ? "bg-[#D4735E] text-white"
-                    : "bg-white text-[#3D2E2E] border border-[#3D2E2E]/10 hover:border-[#3D2E2E]/30"
-                }`}
+                  ? "bg-[#D4735E] text-white"
+                  : "bg-white text-[#3D2E2E] border border-[#3D2E2E]/10 hover:border-[#3D2E2E]/30"
+                  }`}
               >
-                {category || "Unknown"}
+                {category as string || "Unknown"}
               </button>
             ))}
           </div>
@@ -238,7 +219,7 @@ export default function Explore({
 
         {/* Listings Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredExperiences.map((exp, index) => (
+          {experiences.map((exp, index) => (
             <motion.div
               key={exp.id}
               initial={{ opacity: 0, y: 20 }}
@@ -309,121 +290,123 @@ export default function Explore({
           ))}
         </div>
 
-        {filteredExperiences.length === 0 && (
+        {experiences.length === 0 && (
           <p className="text-center text-gray-500 mt-10 text-lg">
             No results found
           </p>
         )}
 
-        {isBookingModalOpen && selectedListing && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-                onClick={() => {
-                  setIsBookingModalOpen(false);
-                  setStartDate(null);
-                  setEndDate(null);
-                }}
-              >
-                ✕
-              </button>
-
-              <h2 className="text-2xl font-bold text-[#3D2E2E] mb-2">
-                {selectedListing.title}
-              </h2>
-              <p className="text-gray-500 mb-4">{selectedListing.city}</p>
-
-              <div className="mb-4">
-                <span className="font-semibold">Guide:</span>{" "}
-                {selectedListing.guide?.name || "Unknown"}
-              </div>
-              <div className="mb-4">
-                <span className="font-semibold">Price:</span> $
-                {selectedListing.price}/person
-              </div>
-
-              {/* Date Inputs */}
-              <div className="mb-4">
-                <label className="block font-semibold mb-1">Start Date:</label>
-                <input
-                  type="date"
-                  min={new Date().toISOString().split("T")[0]}
-                  value={startDate || ""}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block font-semibold mb-1">End Date:</label>
-                <input
-                  type="date"
-                  min={startDate || new Date().toISOString().split("T")[0]}
-                  value={endDate || ""}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
-              </div>
-
-              {/* Send Request Button */}
-              <button
-                disabled={!startDate || isBookingLoading}
-                onClick={async () => {
-                  if (!startDate) return;
-
-                  setIsBookingLoading(true); // start loading immediately
-
-                  try {
-                    // 1️⃣ Check user
-                    const userInfo = await getUserInfo();
-
-                    if (!userInfo || !userInfo.touristId) {
-                      toast.error("Only logged-in tourists can make bookings!");
-                      const currentPath =
-                        window.location.pathname + window.location.search;
-                      router.push(
-                        `/login?redirect=${encodeURIComponent(currentPath)}`
-                      );
-                      return;
-                    }
-
-                    // Now it's safe to call postBooking
-                    const result = await postBooking({
-                      listingId: selectedListing.id,
-                      startDate,
-                      endDate: endDate,
-                      user: userInfo,
-                    });
-
-                    if (!result.success) throw new Error(result.message);
-
-                    // 3️⃣ Success feedback
-                    toast.success("Booking request sent! Status: Pending");
-
-                    // Reset modal state
+        <AnimatePresence>
+          {isBookingModalOpen && selectedListing && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
+                <button
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+                  onClick={() => {
                     setIsBookingModalOpen(false);
                     setStartDate(null);
                     setEndDate(null);
-                    router.push("/dashboard/my-bookings");
-                  } catch (err: any) {
-                    toast.error(err.message || "Something went wrong");
-                  } finally {
-                    setIsBookingLoading(false);
-                  }
-                }}
-                className="w-full bg-[#D4735E] text-white py-2 rounded-full font-medium hover:bg-[#b55b47] transition-colors disabled:opacity-50"
-              >
-                {isBookingLoading ? "Sending..." : "Send Request"}
-              </button>
-            </div>
-          </motion.div>
-        )}
+                  }}
+                >
+                  ✕
+                </button>
+
+                <h2 className="text-2xl font-bold text-[#3D2E2E] mb-2">
+                  {selectedListing.title}
+                </h2>
+                <p className="text-gray-500 mb-4">{selectedListing.city}</p>
+
+                <div className="mb-4">
+                  <span className="font-semibold">Guide:</span>{" "}
+                  {selectedListing.guide?.name || "Unknown"}
+                </div>
+                <div className="mb-4">
+                  <span className="font-semibold">Price:</span> $
+                  {selectedListing.price}/person
+                </div>
+
+                {/* Date Inputs */}
+                <div className="mb-4">
+                  <label className="block font-semibold mb-1">Start Date:</label>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={startDate || ""}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block font-semibold mb-1">End Date:</label>
+                  <input
+                    type="date"
+                    min={startDate || new Date().toISOString().split("T")[0]}
+                    value={endDate || ""}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </div>
+
+                {/* Send Request Button */}
+                <button
+                  disabled={!startDate || isBookingLoading}
+                  onClick={async () => {
+                    if (!startDate) return;
+
+                    setIsBookingLoading(true); // start loading immediately
+
+                    try {
+                      // 1️⃣ Check user
+                      const userInfo = await getUserInfo();
+
+                      if (!userInfo || !userInfo.touristId) {
+                        toast.error("Only logged-in tourists can make bookings!");
+                        const currentPath =
+                          window.location.pathname + window.location.search;
+                        router.push(
+                          `/login?redirect=${encodeURIComponent(currentPath)}`
+                        );
+                        return;
+                      }
+
+                      // Now it's safe to call postBooking
+                      const result = await postBooking({
+                        listingId: selectedListing.id,
+                        startDate,
+                        endDate: endDate,
+                        user: userInfo,
+                      });
+
+                      if (!result.success) throw new Error(result.message);
+
+                      // 3️⃣ Success feedback
+                      toast.success("Booking request sent! Status: Pending");
+
+                      // Reset modal state
+                      setIsBookingModalOpen(false);
+                      setStartDate(null);
+                      setEndDate(null);
+                      router.push("/dashboard/my-bookings");
+                    } catch (err: any) {
+                      toast.error(err.message || "Something went wrong");
+                    } finally {
+                      setIsBookingLoading(false);
+                    }
+                  }}
+                  className="w-full bg-[#D4735E] text-white py-2 rounded-full font-medium hover:bg-[#b55b47] transition-colors disabled:opacity-50"
+                >
+                  {isBookingLoading ? "Sending..." : "Send Request"}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
