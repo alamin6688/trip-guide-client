@@ -3,9 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { serverFetch } from "@/lib/server-fetch";
 import { getUserInfo } from "@/services/auth/getUserInfo";
-import { initiatePayment } from "@/services/tourist/touristsManagement";
+import { getMyBookings, initiatePayment } from "@/services/tourist/touristsManagement";
 import { Button } from "@/components/ui/button";
 
 interface Booking {
@@ -42,18 +41,7 @@ const MyBookings = () => {
           return;
         }
 
-        // ✅ IMPORTANT: credentials included
-        const res = await serverFetch.get("/booking/my", {
-          cache: "no-store",
-          credentials: "include",
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.message || "Failed to fetch bookings");
-        }
-
-        const result = await res.json();
+        const result = await getMyBookings();
 
         if (!result.success) {
           throw new Error(result.message || "Failed to fetch bookings");
@@ -116,15 +104,14 @@ const MyBookings = () => {
 
               <span
                 className={`px-3 py-1 rounded-full text-sm font-medium
-          ${
-            booking.status === "ACCEPTED"
-              ? "bg-green-100 text-green-700"
-              : booking.status === "PENDING"
-              ? "bg-yellow-100 text-yellow-700"
-              : booking.status === "COMPLETED"
-              ? "bg-blue-100 text-blue-700"
-              : "bg-red-100 text-red-700"
-          }`}
+          ${booking.status === "ACCEPTED"
+                    ? "bg-green-100 text-green-700"
+                    : booking.status === "PENDING"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : booking.status === "COMPLETED"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-red-100 text-red-700"
+                  }`}
               >
                 {booking.status}
               </span>
@@ -160,25 +147,25 @@ const MyBookings = () => {
             <div className="mt-4 flex gap-2">
               {booking.paymentStatus === "PAID" ? (
                 <>
-                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center justify-between w-full">
 
-                  <button
-                    disabled
-                    className="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed"
+                    <button
+                      disabled
+                      className="px-4 py-2 rounded-lg bg-gray-200 text-gray-500 cursor-not-allowed"
                     >
-                    Payment Completed
-                  </button>
-                  <button
-                    onClick={() =>
+                      Payment Completed
+                    </button>
+                    <button
+                      onClick={() =>
                         router.push(
-                            `/dashboard/review?bookingId=${booking.id}&guideName=${booking.guide.name}&listingTitle=${booking.listing.title}`
+                          `/dashboard/review?bookingId=${booking.id}&guideName=${booking.guide.name}&listingTitle=${booking.listing.title}`
                         )
-                    }
-                    className="px-4 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-600"
+                      }
+                      className="px-4 py-2 rounded-lg bg-blue-700 text-white hover:bg-blue-600"
                     >
-                    Leave Review
-                  </button>
-                      </div>
+                      Leave Review
+                    </button>
+                  </div>
                 </>
               ) : booking.status === "ACCEPTED" ? (
                 <button

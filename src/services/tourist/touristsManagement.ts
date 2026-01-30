@@ -45,7 +45,7 @@ export async function postBooking(payload: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      cache: "force-cache",
+      cache: "no-store",
       credentials: "include",
       next: { tags: ["booking-list"] },
     });
